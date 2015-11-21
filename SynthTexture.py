@@ -35,7 +35,12 @@ def SynthTexture(sourceimage, w, synthdim):
             template=synthim_padded[I(i)+offset-(w-1)/2:I(i)+offset+(w-1)/2,J(i)+offset-(w-1)/2:J(i)+offset+(w-1)/2]
             validmask=(template>=0)
             # 2D Guassian
-            [pixelvalues, matcherrors] = FindMatches(template, validmask, sourceimage, G)
+            re_list = FindMatches(template, validmask, sourceimage, G)
+            pixelvalues = []
+            matcherrors = []
+            for i in re_list:
+                pixelvalues.append(i[1])
+                matcherrors.append(i[0])
             BstInd=random.randint(1,len(pixelvalues))
             BestMatch=pixelvalues(BstInd)
             if matcherrors(BstInd)<MaxErrThreshold:
