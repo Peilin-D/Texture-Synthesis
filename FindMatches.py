@@ -14,10 +14,7 @@ def FindMatches(targetwindow, validMask, sourceimage, G):
 	# rather, we're going to use for loop
 	for i in range((n-1)/2,w-(n-1)/2):
 		for j in range((n-1)/2,h-(n-1)/2):
-			#for ii in range(0,n):
-				#for jj in range(0,n):
 			dist=(targetwindow-sourceimage[i-(n-1)/2:i+(n+1)/2,j-(n-1)/2:j+(n+1)/2])**2
-			#SSD[i-(n-1)/2,j-(n-1)/2]=(dist*validMask*G)/TotWeight
 			SSD.append(sum(sum(dist*validMask*G))/TotWeight)
 			pixelVal.append(sourceimage[i,j])
 
