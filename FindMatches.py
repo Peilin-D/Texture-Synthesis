@@ -5,7 +5,8 @@ def FindMatches(targetwindow, validMask, sourceimage, G):
 	n=targetwindow.shape[0]
 
 	ErrThreshold=0.1
-
+	#print validMask
+	#print G
 	TotWeight=sum(sum(validMask*G))
 	SSD=[]
 	pixelVal=[]
@@ -20,6 +21,7 @@ def FindMatches(targetwindow, validMask, sourceimage, G):
 			SSD.append(sum(sum(dist*validMask*G))/TotWeight)
 			pixelVal.append(sourceimage[i,j])
 
+	#print SSD
 	MinErr=min(SSD)
 	if MinErr<0 and abs(minErr)>1e-15:
 		sys.exit("large error encountered!")
@@ -29,7 +31,7 @@ def FindMatches(targetwindow, validMask, sourceimage, G):
 			err=0
 
 	ErrNVal=zip(SSD,pixelVal)
-	return [(err, val) for (err, val) in ErrNVal if err<MinErr*(1+ErrThreshold)]
+	return [(err, val) for (err, val) in ErrNVal if err<=MinErr*(1+ErrThreshold)]
 
 
 

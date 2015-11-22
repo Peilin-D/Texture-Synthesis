@@ -2,6 +2,8 @@
 import numpy as np
 import math
 import scipy
+from FindMatches import *
+from scipy import ndimage
 
 def SynthTexture(sourceimage, w, synthdim):
     # some variables, w should be an odd number
@@ -10,7 +12,7 @@ def SynthTexture(sourceimage, w, synthdim):
     x,y=np.meshgrid(range( -(w-1)/2,(w-1)/2+1 ),range( -(w-1)/2,(w-1)/2+1 ))
     G=(1/(sigma**2*2*np.pi))*np.exp(-(x**2+y**2)/(2*sigma**2))
     nfilled=0
-    tofill=synthdim(1)*synthdim(2)-9 # the number of pixels to fill
+    tofill=synthdim[0]*synthdim[1]-9 # the number of pixels to fill
 
     synthim=np.ones((synthdim[0],synthdim[1]))*(-1)
     im_filled=np.zeros((synthdim[0],synthdim[1])) # image for testing the original image is filled or not
@@ -18,27 +20,32 @@ def SynthTexture(sourceimage, w, synthdim):
     # place the seed in the center and zero padding
     synthim[(math.floor(synthdim[0]/2)-1):(math.floor(synthdim[0])/2+1),\
     (math.floor(synthdim[1]/2)-1):(math.floor(synthdim[1]/2)+1)]=sourceimage[5:7,4:6]
-    synthim_padded=np.lib.pad(synthim,((w-1)/2, (w-1)/2))
+    synthim_padded=np.lib.pad(synthim,(((w-1)/2, (w-1)/2),((w-1)/2, (w-1)/2)),'constant', constant_values=0)
 
     # find unfilled neighbors
-    se= ndimage.generate_binary_structure(3,3)  # use a 3 by 3 structuring element for dilation
+    se= ndimage.generate_binary_structure(2,2)  # use a 3 by 3 structuring element for dilation
     im_filled[(math.floor(synthdim[0]/2)-1):(math.floor(synthdim[0])/2+1),\
     (math.floor(synthdim[1]/2)-1):(math.floor(synthdim[1]/2)+1)]=1
-    im_dil=ndimage.binary_dilation(im_filled,se)
+    im_dil=ndimage.binary_dilation(im_filled,structure=se)
     [I,J]=np.nonzero(im_dil-im_filled)
 
     while nfilled<tofill:
+        #print nfilled
         progress=0;
     # get template
-        for i in range(1,len(I)+1):
+        for i in range(0,len(I)):
             # zero padding
-            template=synthim_padded[I(i)+offset-(w-1)/2:I(i)+offset+(w-1)/2,J(i)+offset-(w-1)/2:J(i)+offset+(w-1)/2]
+            template=synthim_padded[I[i]+offset-(w-1)/2:I[i]+offset+(w-1)/2+1,J[i]+offset-(w-1)/2:J[i]+offset+(w-1)/2+1]
             validmask=(template>=0)
-            # 2D Guassian
-            [pixelvalues, matcherrors] = FindMatches(template, validmask, sourceimage, G)
-            BstInd=random.randint(1,len(pixelvalues))
-            BestMatch=pixelvalues(BstInd)
-            if matcherrors(BstInd)<MaxErrThreshold:
+            re_list = FindMatches(template, validmask, sourceimage, G)
+            pixelvalues = []
+            matcherrors = []
+            for tup in re_list:
+                pixelvalues.append(tup[1])
+                matcherrors.append(tup[0])
+            BstInd=np.random.randint(0,len(pixelvalues))
+            BestMatch=pixelvalues[BstInd]
+            if matcherrors[BstInd]<MaxErrThreshold:
                 synthim[I[i],J[i]]=BestMatch
                 synthim_padded[I[i]+offset,J[i]+offset]=BestMatch
                 progress=1
@@ -46,7 +53,7 @@ def SynthTexture(sourceimage, w, synthdim):
                 im_filled[I[i],J[i]]=1
         if progress==0:
             MaxErrThreshold=MaxErrThreshold*1.1
-        im_dil=ndimage.binary_dilation(im_filled,se)
+        im_dil=ndimage.binary_dilation(im_filled,structure=se)
         [I,J]=np.nonzero(im_dil-im_filled)
     return synthim
 
