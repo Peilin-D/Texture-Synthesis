@@ -9,7 +9,7 @@ def SynthTexture(sourceimage, w, synthdim):
     # some variables, w should be an odd number
     MaxErrThreshold=0.3
     sigma=w/6.4
-    x,y=np.meshgrid(range( -(w-1)/2,(w-1)/2+1 ),range( -(w-1)/2,(w-1)/2+1 ))
+    x,y=np.meshgrid(range(-(w-1)/2,(w-1)/2+1),range(-(w-1)/2,(w-1)/2+1))
     G=(1/(sigma**2*2*np.pi))*np.exp(-(x**2+y**2)/(2*sigma**2))
     nfilled=0
     tofill=synthdim[0]*synthdim[1]-9 # the number of pixels to fill
@@ -21,32 +21,23 @@ def SynthTexture(sourceimage, w, synthdim):
     synthim[(math.floor(synthdim[0]/2)-1):(math.floor(synthdim[0])/2+1),\
     (math.floor(synthdim[1]/2)-1):(math.floor(synthdim[1]/2)+1)]=sourceimage[5:7,4:6]
     synthim_padded=np.lib.pad(synthim,(((w-1)/2, (w-1)/2),((w-1)/2, (w-1)/2)),'constant', constant_values=0)
-
     # find unfilled neighbors
     se= ndimage.generate_binary_structure(2,2)  # use a 3 by 3 structuring element for dilation
-    im_filled[(math.floor(synthdim[0]/2)-1):(math.floor(synthdim[0])/2+1),\
-    (math.floor(synthdim[1]/2)-1):(math.floor(synthdim[1]/2)+1)]=1
+    im_filled=(synthim>=0)
     im_dil=ndimage.binary_dilation(im_filled,structure=se)
     [I,J]=np.nonzero(im_dil-im_filled)
 
     while nfilled<tofill:
-        #print nfilled
         progress=0;
-    # get template
+        # get template
         for i in range(0,len(I)):
-            # zero padding
             template=synthim_padded[I[i]+offset-(w-1)/2:I[i]+offset+(w-1)/2+1,J[i]+offset-(w-1)/2:J[i]+offset+(w-1)/2+1]
             validmask=(template>=0)
-            re_list = FindMatches(template, validmask, sourceimage, G)
-            pixelvalues = []
-            matcherrors = []
-            for tup in re_list:
-                pixelvalues.append(tup[1])
-                matcherrors.append(tup[0])
-            BstInd=np.random.randint(0,len(pixelvalues))
-            BestMatch=pixelvalues[BstInd]
-            if matcherrors[BstInd]<MaxErrThreshold:
-                synthim[I[i],J[i]]=BestMatch
+            match_list = FindMatches(template, validmask, sourceimage, G)
+            BstInd=np.random.randint(0,len(match_list))
+            BestMatch=match_list[BstInd][1]
+            MatchErr=match_list[BstInd][0]
+            if MatchErr<MaxErrThreshold:
                 synthim_padded[I[i]+offset,J[i]+offset]=BestMatch
                 progress=1
                 nfilled=nfilled+1
@@ -55,6 +46,8 @@ def SynthTexture(sourceimage, w, synthdim):
             MaxErrThreshold=MaxErrThreshold*1.1
         im_dil=ndimage.binary_dilation(im_filled,structure=se)
         [I,J]=np.nonzero(im_dil-im_filled)
+    
+    synthim=synthim_padded[offset:offset+synthdim[0],offset:offset+synthdim[1]]
     return synthim
 
 
