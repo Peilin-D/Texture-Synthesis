@@ -97,6 +97,7 @@ if __name__ == '__main__':
                                     match_list,
                                     width, height,
                                     buf_width, buf_height, halo)
+                print match_list
                 BstInd=np.random.randint(0,len(match_list))
                 BestMatch=match_list[BstInd][1]
                 MatchErr=match_list[BstInd][0]
