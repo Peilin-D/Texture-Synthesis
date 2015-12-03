@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
     # template window size
     w = 15
-    synthdim=[60,60]
+    synthdim=[40,40]
     tex_width = np.int32(host_texture.shape[1])
     tex_height = np.int32(host_texture.shape[0])
     
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     # GPU Local work group
     workgroup = cl.LocalMemory(4*w*w)
     mask = cl.LocalMemory(4*w*w)
-    sqDiff = cl.LocalMemory(4*(w+1)*(w+1))
+    sqDiff = cl.LocalMemory(4*w*w)
 
     # global size and local size
     #global_size = (1,1,len(I))
@@ -107,7 +107,7 @@ if __name__ == '__main__':
         # Call Kernel
         global_size = (15,15,len(I))
         for i in range(len(I)):
-            program.FillingPixels(queue, global_size, local_size,
+            program.FillingPixels_v3(queue, global_size, local_size,
                                 gpu_Image, gpu_texture, gpu_imfilled, gpu_Gaussian,
                                 workgroup, mask, sqDiff, gpu_I, gpu_J, 
                                 np.int32(synthdim[0]),np.int32(synthdim[1]),np.int32(tex_width),np.int32(tex_height),
