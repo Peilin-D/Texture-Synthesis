@@ -114,6 +114,7 @@ if __name__ == '__main__':
     workgroup = cl.LocalMemory(4*w*w)
     mask = cl.LocalMemory(4*w*w)
     sqDiff = cl.LocalMemory(4*w*w)
+    texture=cl.LocalMemory(4*tex_width*tex_height)
 
     # global size and local size
     #global_size = (1,1,len(I))
@@ -128,9 +129,9 @@ if __name__ == '__main__':
         else:
             global_size=(w,w,tofill-nfilled)
             flag=False
-        program.FillingPixels_v4(queue, global_size, local_size,
+        program.FillingPixels_v5(queue, global_size, local_size,
                                 gpu_Image, gpu_texture, gpu_imfilled, gpu_Gaussian,
-                                workgroup, mask, sqDiff, gpu_I, gpu_J, 
+                                workgroup, mask, sqDiff, texture, gpu_I, gpu_J, 
                                 np.int32(synthdim[0]),np.int32(synthdim[1]),np.int32(tex_width),np.int32(tex_height),
                                 np.int32(w),np.float32(MaxErrThreshold),np.int32(n))
         nfilled=nfilled+8*n+8
