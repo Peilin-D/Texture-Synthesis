@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # start timing
     t0=time.time()
 
-    host_texture = ndimage.imread('../textures/text3.gif').astype(np.float32)
+    host_texture = ndimage.imread('../textures/rings.jpg').astype(np.float32)
     # im_c=np.zeros([host_texture.shape[0],host_texture.shape[1],3])
     # im_c[:,:,1]=host_texture
     # im=Image.fromarray(im_c)
@@ -148,6 +148,7 @@ if __name__ == '__main__':
 
     out_im=Image.fromarray(synthim*255)
     out_im.show()
+    #out_im.save("out_im.jpg","JPEG")
     #pylab.imshow(synthim)
     #pylab.show()
 
