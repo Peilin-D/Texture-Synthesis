@@ -1,7 +1,7 @@
 import sys
 
 def FindMatches(targetwindow, validMask, sourceimage, G):
-	h,w=sourceimage.shape
+	w,h=sourceimage.shape
 	n=targetwindow.shape[0]
 
 	ErrThreshold=0.1
