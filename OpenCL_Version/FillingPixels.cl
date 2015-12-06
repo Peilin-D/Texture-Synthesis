@@ -104,11 +104,15 @@ FillingPixels_v5( __global float * gpu_Image,
             }
         }
     }
-    if(bestErr<MaxErr)
+    if(idx_1D==0)
     {
-        gpu_Image[get_index(width,height,cx,cy)]=bestValue;
-        gpu_imfilled[get_index(width,height,cx,cy)]=1;
+        //if(bestErr<MaxErr)
+        //{
+            gpu_Image[get_index(width,height,cx,cy)]=bestValue;
+            gpu_imfilled[get_index(width,height,cx,cy)]=1;
+        //}
     }
+    barrier(CLK_GLOBAL_MEM_FENCE);
 }
 __kernel void
 FillingPixels_v4( __global float * gpu_Image,
@@ -191,10 +195,13 @@ FillingPixels_v4( __global float * gpu_Image,
             }
         }
     }
-    if(bestErr<MaxErr)
+    if(idx_1D==0)
     {
-        gpu_Image[get_index(width,height,cx,cy)]=bestValue;
-        gpu_imfilled[get_index(width,height,cx,cy)]=1;
+        //if(bestErr<MaxErr)
+        {
+            gpu_Image[get_index(width,height,cx,cy)]=bestValue;
+            gpu_imfilled[get_index(width,height,cx,cy)]=1;
+        }
     }
 }
 
@@ -354,7 +361,7 @@ FillingPixels_v2( __global float * gpu_Image,
     }
     if(idx_1D==0)
     {
-        if(bestErr<MaxErr)
+        //if(bestErr<MaxErr)
         {
             gpu_Image[get_index(width,height,cx,cy)]=bestValue;
             gpu_imfilled[get_index(width,height,cx,cy)]=1;

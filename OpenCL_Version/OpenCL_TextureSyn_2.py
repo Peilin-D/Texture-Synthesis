@@ -6,6 +6,7 @@ from scipy import ndimage
 import pyopencl as cl
 import os.path
 import pylab
+import time
 
 
 if __name__ == '__main__':
@@ -42,7 +43,9 @@ if __name__ == '__main__':
     program = cl.Program(context, open('FillingPixels.cl').read()).build(options='')#(options=['-I', curdir])
 
 
-    host_texture = ndimage.imread('rings.jpg').astype(np.float32)
+    t0=time.time()
+
+    host_texture = ndimage.imread('../textures/text3.gif').astype(np.float32)
     # im_c=np.zeros([host_texture.shape[0],host_texture.shape[1],3])
     # im_c[:,:,1]=host_texture
     # im=Image.fromarray(im_c)
@@ -53,8 +56,8 @@ if __name__ == '__main__':
 
 
     # template window size
-    w = 15
-    synthdim=[50,50]
+    w = 19
+    synthdim=[300,300]
     tex_width = np.int32(host_texture.shape[1])
     tex_height = np.int32(host_texture.shape[0])
     
@@ -137,6 +140,9 @@ if __name__ == '__main__':
         n=n+1
     cl.enqueue_copy(queue, synthim, gpu_Image)
 
+
+    print "Parallel Version costs ", time.time()-t0, " seconds"
+    
     out_im=Image.fromarray(synthim*255)
     out_im.show()
     #pylab.imshow(synthim)

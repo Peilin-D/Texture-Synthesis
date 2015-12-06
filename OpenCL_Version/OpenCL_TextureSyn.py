@@ -42,7 +42,7 @@ if __name__ == '__main__':
     program = cl.Program(context, open('FillingPixels.cl').read()).build(options='')#(options=['-I', curdir])
 
 
-    host_texture = ndimage.imread('rings.jpg').astype(np.float32)
+    host_texture = ndimage.imread('../textures/rings.jpg').astype(np.float32)
     host_texture = host_texture/255
 
 

@@ -4,9 +4,10 @@ import pylab
 from PIL import Image
 from SynthTexture import *
 
+
 if __name__ == "__main__":
 
-	tex=ndimage.imread('../textures/rings.jpg')
+	tex=ndimage.imread('../textures/D1.gif')
 	tex=tex/255.0;
 	#print tex.shape[0], tex.shape[1]
 	Sythim=SynthTexture(tex, 13, [50,50])
