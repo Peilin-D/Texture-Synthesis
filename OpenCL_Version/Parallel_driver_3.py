@@ -15,7 +15,9 @@ if __name__ == '__main__':
     #read input arguments
     inputfile = sys.argv[1]
     outputfile = sys.argv[2]
-    syn_size = int(sys.argv[3])
+    w = int(sys.argv[3])
+    syn_size_1 = int(sys.argv[4])
+    syn_size_2 = int(sys.argv[5])
 
     platforms = cl.get_platforms()
     print 'The platforms detected are:'
@@ -36,7 +38,8 @@ if __name__ == '__main__':
 
     # Create a context with all the devices
     devices = platforms[0].get_devices()
-    context = cl.Context(devices[2:])
+    #context = cl.Context(devices[2:])
+    context = cl.create_some_context()
     print 'This context is associated with ', len(context.devices), 'devices'
 
     # Create a queue for transferring data and launching computations.
@@ -46,26 +49,19 @@ if __name__ == '__main__':
     print 'The queue is using the device:', queue.device.name
 
     curdir = os.path.dirname(os.path.realpath(__file__))
-    program = cl.Program(context, open('FillingPixels.cl').read()).build(options='')#(options=['-I', curdir])
+    program = cl.Program(context, open('FillingPixels.cl').read()).build(options='')
 
 
     # start timing
     t0=time.time()
 
     host_texture = ndimage.imread(inputfile).astype(np.float32)
-    # im_c=np.zeros([host_texture.shape[0],host_texture.shape[1],3])
-    # im_c[:,:,1]=host_texture
-    # im=Image.fromarray(im_c)
-    # im.show()
-    print host_texture.shape
 
     host_texture = host_texture/255
 
-
-
     # template window size
-    w = 15
-    synthdim=[syn_size,syn_size]
+    # w = 15
+    synthdim=[syn_size_1,syn_size_2]
     tex_width = np.int32(host_texture.shape[1])
     tex_height = np.int32(host_texture.shape[0])
     
@@ -77,13 +73,11 @@ if __name__ == '__main__':
     tofill=synthdim[0]*synthdim[1]-9 # the number of pixels to fill
 
     synthim=(np.ones((synthdim[0],synthdim[1]))*(-1)).astype(np.float32)
-    #im_filled=np.zeros((synthdim[0],synthdim[1])).astype(np.float32) # image for testing the original image is filled or not
 
     # place the seed in the center and zero padding
     synthim[(np.floor(synthdim[0]/2)-1):(np.floor(synthdim[0])/2+2), (np.floor(synthdim[1]/2)-1):(np.floor(synthdim[1]/2)+2)]=host_texture[5:8,4:7]
  
     # GPU Global Buffers
-    #gpu_im_not_filled = cl.Buffer(context, cl.mem_flags.READ_WRITE, synthim.size*4)
     gpu_imfilled = cl.Buffer(context, cl.mem_flags.READ_WRITE, synthim.size*4)
     gpu_texture = cl.Buffer(context, cl.mem_flags.READ_WRITE, host_texture.size * 4)
     gpu_Gaussian = cl.Buffer(context, cl.mem_flags.READ_WRITE, w*w*4)
@@ -95,7 +89,6 @@ if __name__ == '__main__':
     cl.enqueue_copy(queue, gpu_Gaussian, G) #is_blocking=False)
     
     # find unfilled neighbors
-    #se= ndimage.generate_binary_structure(2,2)  # use a 3 by 3 structuring element for dilation
     im_filled=(synthim>=0).astype(np.float32)
     im_not_filled=(synthim<0).astype(np.float32)
     [I,J]=np.nonzero(im_not_filled)
@@ -116,7 +109,6 @@ if __name__ == '__main__':
     gpu_J = cl.Buffer(context, cl.mem_flags.READ_ONLY, len(I)*4)
 
 
-    #cl.enqueue_copy(queue, gpu_im_not_filled, im_not_filled)
     cl.enqueue_copy(queue, gpu_imfilled, im_filled) #is_blocking=False)
     cl.enqueue_copy(queue, gpu_I, I) #is_blocking=False)
     cl.enqueue_copy(queue, gpu_J, J) #is_blocking=False)
@@ -153,10 +145,8 @@ if __name__ == '__main__':
 
 
     out_im=Image.fromarray(synthim*255)
+    out_im.show()
     out_im.convert('RGB').save(outputfile,"JPEG")
-    #pylab.savefig(outputfile)
-    #out_im.save("out_im.jpg","JPEG")
-    #pylab.imshow(synthim)
-    #pylab.show()
+
 
 

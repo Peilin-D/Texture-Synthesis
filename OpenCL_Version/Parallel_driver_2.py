@@ -13,7 +13,10 @@ if __name__ == '__main__':
    #read input arguments
     inputfile = sys.argv[1]
     outputfile = sys.argv[2]
-    syn_size = int(sys.argv[3])
+    w=int(sys.argv[3])
+    syn_size_1 = int(sys.argv[4])
+    syn_size_2 = int(sys.argv[5])
+
 
     # List our platforms
     platforms = cl.get_platforms()
@@ -35,7 +38,8 @@ if __name__ == '__main__':
 
     # Create a context with all the devices
     devices = platforms[0].get_devices()
-    context = cl.Context(devices[2:])
+    context = cl.create_some_context()
+    #context = cl.Context(devices[2:])
     print 'This context is associated with ', len(context.devices), 'devices'
 
     # Create a queue for transferring data and launching computations.
@@ -50,14 +54,12 @@ if __name__ == '__main__':
 
     t0=time.time()
 
-    host_texture = ndimage.imread('../textures/text3.gif').astype(np.float32)
+    host_texture = ndimage.imread(inputfile).astype(np.float32)
     host_texture = host_texture/255
 
-
-
     # template window size
-    w = 19
-    synthdim=[syn_size,syn_size]
+    # w = 19
+    synthdim=[syn_size_1,syn_size_2]
     tex_width = np.int32(host_texture.shape[1])
     tex_height = np.int32(host_texture.shape[0])
     
@@ -136,10 +138,10 @@ if __name__ == '__main__':
         n=n+1
     cl.enqueue_copy(queue, synthim, gpu_Image)
 
-
     print "Parallel Version costs ", time.time()-t0, " seconds"
     
     out_im=Image.fromarray(synthim*255)
+    out_im.show()
     out_im.convert('RGB').save(outputfile,"JPEG")   
 
 

@@ -13,7 +13,9 @@ if __name__ == '__main__':
     #read input arguments
     inputfile = sys.argv[1]
     outputfile = sys.argv[2]
-    syn_size = int(sys.argv[3])
+    w = int(sys.argv[3])
+    syn_size_1 = int(sys.argv[4])
+    syn_size_2 = int(sys.argv[5])
 
     print inputfile
     platforms = cl.get_platforms()
@@ -21,6 +23,7 @@ if __name__ == '__main__':
     print '---------------------------'
     for platform in platforms:
         print platform.name, platform.vendor, 'version:', platform.version
+
 
     # List devices in each platform
     for platform in platforms:
@@ -35,7 +38,8 @@ if __name__ == '__main__':
 
     # Create a context with all the devices
     devices = platforms[0].get_devices()
-    context = cl.Context(devices[2:])
+    #context = cl.Context(devices)
+    context=cl.create_some_context()
     print 'This context is associated with ', len(context.devices), 'devices'
 
     # Create a queue for transferring data and launching computations.
@@ -53,8 +57,8 @@ if __name__ == '__main__':
 
 
     # template window size
-    w = 15
-    synthdim=[syn_size,syn_size]
+    # w = 15
+    synthdim=[syn_size_1,syn_size_2]
     tex_width = np.int32(host_texture.shape[1])
     tex_height = np.int32(host_texture.shape[0])
     
@@ -113,11 +117,8 @@ if __name__ == '__main__':
         # Call Kernel
         global_size = (w,w,len(I))
         for i in range(len(I)):
-<<<<<<< HEAD:OpenCL_Version/OpenCL_TextureSyn.py
-            program.FillingPixels_v3(queue, global_size, local_size,
-=======
+            
             program.FillingPixels_v2(queue, global_size, local_size,
->>>>>>> efdab4923d0f4cdfb7e7ffdefb688f09613f90e1:OpenCL_Version/Parallel_driver.py
                                 gpu_Image, gpu_texture, gpu_imfilled, gpu_Gaussian,
                                 workgroup, mask, sqDiff, gpu_I, gpu_J, 
                                 np.int32(synthdim[0]),np.int32(synthdim[1]),np.int32(tex_width),np.int32(tex_height),
@@ -127,7 +128,7 @@ if __name__ == '__main__':
         nfilled_tmp = sum(sum(im_filled))
         newly_filled = nfilled_tmp-nfilled
         nfilled = nfilled_tmp
-        print nfilled, newly_filled
+        print "filled pixels: ", int(nfilled), "newly filled pixels: ", int(newly_filled)
         progress = newly_filled
         if progress==0:
                 MaxErrThreshold=MaxErrThreshold*1.1
@@ -144,6 +145,7 @@ if __name__ == '__main__':
     cl.enqueue_copy(queue, synthim, gpu_Image)
 
     out_im=Image.fromarray(synthim*255)
+    out_im.show()
     out_im.convert('RGB').save(outputfile,"JPEG")   
 
 
