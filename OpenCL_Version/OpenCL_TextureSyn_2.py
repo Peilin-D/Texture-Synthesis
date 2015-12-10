@@ -127,7 +127,7 @@ if __name__ == '__main__':
         else:
             global_size=(w,w,tofill-nfilled)
             flag=False
-        program.FillingPixels_v4(queue, global_size, local_size,
+        program.FillingPixels_v3(queue, global_size, local_size,
                                 gpu_Image, gpu_texture, gpu_imfilled, gpu_Gaussian,
                                 workgroup, mask, sqDiff, gpu_I, gpu_J, 
                                 np.int32(synthdim[0]),np.int32(synthdim[1]),np.int32(tex_width),np.int32(tex_height),
