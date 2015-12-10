@@ -113,7 +113,7 @@ if __name__ == '__main__':
         # Call Kernel
         global_size = (w,w,len(I))
         for i in range(len(I)):
-            program.FillingPixels_v1(queue, global_size, local_size,
+            program.FillingPixels_v2(queue, global_size, local_size,
                                 gpu_Image, gpu_texture, gpu_imfilled, gpu_Gaussian,
                                 workgroup, mask, sqDiff, gpu_I, gpu_J, 
                                 np.int32(synthdim[0]),np.int32(synthdim[1]),np.int32(tex_width),np.int32(tex_height),
