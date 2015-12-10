@@ -1,6 +1,6 @@
 # Parallel Texture Synthesis
 Harvard CS 205 Final Project
-
+**For detailed description of both serial and parallel algorith, please check our website at http://parallelimageprocessing.weebly.com/!**  
 Original algorithm by Efros and Leung.  
 This simple algorithm works very well to generate plausible texture pattern of various sizes using a small texture patch.  
 The authors gave a very detailed discription on their website: http://graphics.cs.cmu.edu/people/efros/research/EfrosLeung.html  
@@ -17,11 +17,8 @@ Next we assign multiple threads to each work group, which is the same size as ou
 #### Stage 3: Copy source texture to Local Buffer
 For small source texture, we can load it into local buffer. The source texture would be read several times in the GPU, so we may expect better performance by doing this. But it may not always bring improvement because every thread needs to load it, which would also cost time. A good balance is necessary to find.  
 
-**For more information, you can check our website at http://parallelimageprocessing.weebly.com/!**
-
-We provide two versions of code for download. One is the fully parallelized version with maximum performance improvement.  Another is the original serial version code. 
-
 ### Versions
+We provide two versions of code for download. One is the fully parallelized version with maximum performance improvement.  Another is the original serial version code. 
 The fully parallelized version consists of two files:  
 1. a python driver file named as "parallelized_driver.py"  
 2. an OpenCL file named as "filling pixels.cl".  
