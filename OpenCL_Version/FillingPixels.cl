@@ -341,7 +341,7 @@ FillingPixels_v2( __global float * gpu_Image,
             barrier(CLK_LOCAL_MEM_FENCE); 
 
             //------------------Multi Threads without parallel reduction-------------// 
-            if(idx_1D==0) // let the first thread do the sum
+            if(idx_1D==1) // let the first thread do the sum
             {
                 float err=0;
                 for(int y=0;y<window_size;y++)
@@ -359,7 +359,7 @@ FillingPixels_v2( __global float * gpu_Image,
             }       
         }
     }
-    if(idx_1D==0)
+    if(idx_1D==1)
     {
         //if(bestErr<MaxErr)
         {

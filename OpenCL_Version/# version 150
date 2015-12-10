@@ -1,0 +1,17 @@
+# version 150
+
+in vec2 textureCoords;
+
+out vec4 out_Color;
+
+uniform sampler2D reflectionTexture;
+uniform sampler2D refractionTexture;
+
+void main()
+{
+	vec4 reflectionColor=texture(reflectionTexture, textureCoords);
+	vec4 refractionColor=texture(refractionTexture, textureCoords);
+
+	out_Color=mix(reflectionColor, refractionColor,0.5);
+
+}
