@@ -42,7 +42,7 @@ To run our code, you will need to, at least, have Python 2.7 installed on your l
        For example, if your input texture file is located at "../textures/" and named as "input_texture.jpg". You want to generate a 
        200 * 200 image and name it as "output".
        Then, in your terminal window, you should type:
-       python serial_driver.py ../textures/input_texture.jpg output 200
+       `python serial_driver.py ../textures/input_texture.jpg output 200 200`
 2. Run the parallelized version of code:
     1. Download "parallelized_driver.py" and "filling pixels.cl" to a local directory 
     2. Open terminal and cd to the directory containing the files you just downloaded
@@ -53,6 +53,6 @@ To run our code, you will need to, at least, have Python 2.7 installed on your l
        For example, if your input texture file is located at "../textures/" and named as "input_texture.jpg". You want to generate a 
        200 * 200 image and name it as "output".
        Then, in your terminal window, you should type:
-       python parallelized_driver.py ../textures/input_texture.jpg output 200
+       `python parallelized_driver.py ../textures/input_texture.jpg output 200`
 
 **Note that the size of the image you can generate may depend on the GPU. Generally we don't recommend generating image over 500 by 500. If you find any bug in our code, please leave a message, thank you!**
