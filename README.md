@@ -1,6 +1,8 @@
 # Parallel Texture Synthesis
-Harvard CS 205 Final Project
+Harvard CS 205 Final Project  
 **For detailed description of both serial and parallel algorith, please check our website at http://parallelimageprocessing.weebly.com/!**  
+
+
 Original algorithm by Efros and Leung.  
 This simple algorithm works very well to generate plausible texture pattern of various sizes using a small texture patch.  
 The authors gave a very detailed discription on their website: http://graphics.cs.cmu.edu/people/efros/research/EfrosLeung.html  
