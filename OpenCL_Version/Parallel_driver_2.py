@@ -15,7 +15,7 @@ if __name__ == '__main__':
     outputfile = sys.argv[2]
     w=int(sys.argv[3])
     syn_size_1 = int(sys.argv[4])
-    syn_size_2 = int(sys.argv[5])
+    #syn_size_2 = int(sys.argv[5])
 
 
     # List our platforms
@@ -55,11 +55,12 @@ if __name__ == '__main__':
     t0=time.time()
 
     host_texture = ndimage.imread(inputfile).astype(np.float32)
-    host_texture = host_texture/255
+    if np.amax(host_texture)>1:
+        host_texture = host_texture/255
 
     # template window size
     # w = 19
-    synthdim=[syn_size_1,syn_size_2]
+    synthdim=[syn_size_1,syn_size_1]
     tex_width = np.int32(host_texture.shape[1])
     tex_height = np.int32(host_texture.shape[0])
     
