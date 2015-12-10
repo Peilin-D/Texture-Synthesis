@@ -19,18 +19,31 @@ To let GPU do as much work as possible, rather than let CPU calculates which par
 For small source texture, we can load it into local buffer. The source texture would be read several times in the GPU, so we may expect better performance by doing this. But it may not always bring improvement because every thread needs to load it, which would also cost time. A good balance is necessary to find.  
 
 ### Versions
-We provide two versions of code for download. One is the fully parallelized version with maximum performance improvement.  Another is the original serial version code. 
-The fully parallelized version consists of two files:  
-1. a python driver file named as "parallelized_driver.py"  
-2. an OpenCL file named as "filling pixels.cl".  
+We provide two main versions of code. One is the parallel version, another is the original serial version code. 
+The parallel code consists of several versions:  
 
-The original serial version code consists of three files:  
-1. a python driver file names as "serial_driver.py"  
+1. an OpenCL file named as "filling pixels.cl", in which there are several versions of implementations
+
+    1. FillingPixels_v1 implements the Parallel Setup Stage, which simply uses single thread in one work group.
+    2. FillingPixels_v2 implements Stage 1. 
+    3. FillingPixels_v3 implements Stage 2. 
+    4. FillingPixels_v4 implements Stage 3. 
+    
+2. several python driver files:
+
+    1. "Parallel_driver.py" uses FillingPixels_v2
+    2. "Parallel_driver_2.py" uses FillingPixels_v3
+    3. "Parallel_driver_3.py" uses FillingPixels_v4
+ 
+The original serial version code consists of three files:
+
+1. a python driver file names as "serial_driver.py"
 2. the first python helper file named as "findmatches.py"  
 3. the second python helper file named as "synthtexture.py"   
 
 ### How to Run the Code
-To run our code, you will need to, at least, have Python 2.7 installed on your local computer, and also the PIL Image package. To run the parallelized version of code, you will need to have OpenCL installed on you computer. Our code could be run on all major operating system including Windows, Mac and Linux. Here, we take Mac as an example and explain the process to run our code.  
+To run our code, you will need to, at least, have Python 2.7 installed on your local computer, and also the PIL Image package. To run the parallelized version of code, you will need to have OpenCL installed on you computer. Our code should be able to run on all major operating system including Windows, Mac and Linux. Here, we take Mac as an example and explain the process to run our code.  
+**Note that when running parallel versions, the system will ask you which platform and device you'd like to use.**
 
 1. Run the serial version of code:
     1. Download "serial_driver.py", "findmatches.py" and "synthtexture.py" to a local directory 
@@ -43,8 +56,9 @@ To run our code, you will need to, at least, have Python 2.7 installed on your l
        200 * 200 image and name it as "output".
        Then, in your terminal window, you should type:  
        `python serial_driver.py ../textures/input_texture.jpg output 15 200 200`
+
 2. Run the parallelized version of code:
-    1. Download "parallelized_driver.py" and "filling pixels.cl" to a local directory 
+    1. Download "Parallel_driver.py" and "filling pixels.cl" to a local directory 
     2. Open terminal and cd to the directory containing the files you just downloaded
     3. In the terminal, call python to run the "parallelized_driver.py" with arguments usage outlined below:  
        `python Parallel_driver.py <path_of_input_texture> <name_of_generated_image> <template window size> <size_of_generated_image>`
