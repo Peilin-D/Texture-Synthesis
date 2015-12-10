@@ -7,10 +7,16 @@ import pyopencl as cl
 import os.path
 import pylab
 import time
-
+import sys
 
 if __name__ == '__main__':
     # List our platforms
+
+    #read input arguments
+    inputfile = sys.argv[1]
+    outputfile = sys.argv[2]
+    syn_size = int(sys.argv[3])
+
     platforms = cl.get_platforms()
     print 'The platforms detected are:'
     print '---------------------------'
@@ -30,7 +36,7 @@ if __name__ == '__main__':
 
     # Create a context with all the devices
     devices = platforms[0].get_devices()
-    context = cl.Context(devices)
+    context = cl.Context(devices[2:])
     print 'This context is associated with ', len(context.devices), 'devices'
 
     # Create a queue for transferring data and launching computations.
@@ -46,7 +52,7 @@ if __name__ == '__main__':
     # start timing
     t0=time.time()
 
-    host_texture = ndimage.imread('../textures/rings.jpg').astype(np.float32)
+    host_texture = ndimage.imread(inputfile).astype(np.float32)
     # im_c=np.zeros([host_texture.shape[0],host_texture.shape[1],3])
     # im_c[:,:,1]=host_texture
     # im=Image.fromarray(im_c)
@@ -59,7 +65,7 @@ if __name__ == '__main__':
 
     # template window size
     w = 15
-    synthdim=[100,100]
+    synthdim=[syn_size,syn_size]
     tex_width = np.int32(host_texture.shape[1])
     tex_height = np.int32(host_texture.shape[0])
     
@@ -147,7 +153,8 @@ if __name__ == '__main__':
 
 
     out_im=Image.fromarray(synthim*255)
-    out_im.show()
+    out_im.convert('RGB').save(outputfile,"JPEG")
+    #pylab.savefig(outputfile)
     #out_im.save("out_im.jpg","JPEG")
     #pylab.imshow(synthim)
     #pylab.show()
