@@ -20,7 +20,7 @@ if __name__ == "__main__":
     Sythim=SynthTexture(tex, 15, [syn_size_1,syn_size_2])
     print "Serial Version ", time.time()-t0, " seconds"
     im_out=Image.fromarray(Sythim*255)
-    im_out.imshow()
+    im_out.show()
     im_out.convert('RGB').save(outputfile,"JPEG")
 
 
