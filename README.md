@@ -23,11 +23,14 @@ We provide two main versions of code. One is the parallel version, another is th
 The parallel code consists of several versions:  
 
 1. an OpenCL file named as "filling pixels.cl", in which there are several versions of implementations
+
     1. FillingPixels_v1 implements the Parallel Setup Stage, which simply uses single thread in one work group.
     2. FillingPixels_v2 implements Stage 1. 
     3. FillingPixels_v3 implements Stage 2. 
     4. FillingPixels_v4 implements Stage 3. 
-2. several python driver files:  
+    
+2. several python driver files:
+
     1. "Parallel_driver.py" uses FillingPixels_v2
     2. "Parallel_driver_2.py" uses FillingPixels_v3
     3. "Parallel_driver_3.py" uses FillingPixels_v4
@@ -40,7 +43,7 @@ The original serial version code consists of three files:
 
 ### How to Run the Code
 To run our code, you will need to, at least, have Python 2.7 installed on your local computer, and also the PIL Image package. To run the parallelized version of code, you will need to have OpenCL installed on you computer. Our code should be able to run on all major operating system including Windows, Mac and Linux. Here, we take Mac as an example and explain the process to run our code.  
-**Note that when running parallel versions, the system will ask you which platform and device you'd like to use**
+**Note that when running parallel versions, the system will ask you which platform and device you'd like to use.**
 
 1. Run the serial version of code:
     1. Download "serial_driver.py", "findmatches.py" and "synthtexture.py" to a local directory 
