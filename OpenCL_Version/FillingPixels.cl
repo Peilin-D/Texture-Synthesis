@@ -14,7 +14,7 @@ int get_index(int w, int h, int x, int y){
     return y*w+x;
 }
 __kernel void
-FillingPixels_v5( __global float * gpu_Image,
+FillingPixels_v4( __global float * gpu_Image,
                   __global float * gpu_texture,
                   __global float * gpu_imfilled, // binary image for recording which pixels are filled and which are not 
                   __global float * gpu_Gaussian, // Guassian weight, same size as template window
@@ -115,7 +115,7 @@ FillingPixels_v5( __global float * gpu_Image,
     barrier(CLK_GLOBAL_MEM_FENCE);
 }
 __kernel void
-FillingPixels_v4( __global float * gpu_Image,
+FillingPixels_v3( __global float * gpu_Image,
                   __global float * gpu_texture,
                   __global float * gpu_imfilled, // binary image for recording which pixels are filled and which are not 
                   __global float * gpu_Gaussian, // Guassian weight, same size as template window
@@ -207,7 +207,7 @@ FillingPixels_v4( __global float * gpu_Image,
 
 
 __kernel void
-FillingPixels_v3( __global float * gpu_Image,
+FillingPixels_v2( __global float * gpu_Image,
                   __global float * gpu_texture,
                   __global float * gpu_imfilled, // binary image for recording which pixels are filled and which are not 
                   __global float * gpu_Gaussian, // Guassian weight, same size as template window
@@ -290,85 +290,6 @@ FillingPixels_v3( __global float * gpu_Image,
         gpu_imfilled[get_index(width,height,cx,cy)]=1;
     }
 }
-
-
-__kernel void
-FillingPixels_v2( __global float * gpu_Image,
-                  __global float * gpu_texture,
-                  __global float * gpu_imfilled, // binary image for recording which pixels are filled and which are not 
-                  __global float * gpu_Gaussian, // Guassian weight, same size as template window
-                  __local float * workgroup,  // size of work group should be the same as the size of template window
-                  __local float * mask,
-                  __local float * sqDiff,  // square difference
-                  __global int * I,       //Locations of pixels to fill (row index)
-                  __global int * J,       //Locations of pixels to fill (col index)
-                  int width, int height,  // width and height of image
-                  int tex_w, int tex_h,   // width and height of source texture
-                  int window_size,        // template window size
-                  float MaxErr)
-{
-    int k=get_group_id(2);
-
-    int lx=get_local_id(0);
-    int ly=get_local_id(1);
-
-    // get template window center location in the image
-    int cy=I[k];
-    int cx=J[k];
-
-    // get upper left corner of the template 
-    int cor_x=cx-(window_size-1)/2;
-    int cor_y=cy-(window_size-1)/2;
-
-    const int idx_1D = ly * get_local_size(0) + lx;  //now local_size actually equals to window size
-
-    if (idx_1D < window_size) {
-    for (int row = 0; row < window_size; row++) {
-            workgroup[row * window_size+idx_1D] = gpu_Image[get_index(width, height, cor_x + idx_1D, cor_y + row)];
-            mask[row * window_size+idx_1D] = gpu_imfilled[get_index(width, height, cor_x + idx_1D, cor_y + row)]*gpu_Gaussian[row * window_size+idx_1D];
-        }
-    }
-    barrier(CLK_LOCAL_MEM_FENCE);
-
-    // Find Match
-    float bestErr=100;
-    float bestValue=0;
-    for(int oy=0;oy<tex_h-window_size+1;oy++)  // Swipe the template window
-    {
-        for(int ox=0;ox<tex_w-window_size+1;ox++)
-        {
-            sqDiff[ly*window_size+lx]=mask[ly*window_size+lx]*(workgroup[ly*window_size+lx]-gpu_texture[(ly+oy)*tex_w+lx+ox])*(workgroup[ly*window_size+lx]-gpu_texture[(ly+oy)*tex_w+lx+ox]);
-            barrier(CLK_LOCAL_MEM_FENCE); 
-
-            //------------------Multi Threads without parallel reduction-------------// 
-            if(idx_1D==1) // let the first thread do the sum
-            {
-                float err=0;
-                for(int y=0;y<window_size;y++)
-                {
-                    for(int x=0;x<window_size;x++)
-                    {
-                        err+=sqDiff[y*window_size+x];
-                    }
-                }
-                if(err<bestErr)
-                {
-                    bestErr=err;
-                    bestValue=gpu_texture[(oy+(window_size-1)/2)*tex_w+ox+(window_size-1)/2];
-                }
-            }       
-        }
-    }
-    if(idx_1D==1)
-    {
-        //if(bestErr<MaxErr)
-        {
-            gpu_Image[get_index(width,height,cx,cy)]=bestValue;
-            gpu_imfilled[get_index(width,height,cx,cy)]=1;
-        }
-    }
-}
-
 
 __kernel void
 FillingPixels_v1( __global float * gpu_Image,

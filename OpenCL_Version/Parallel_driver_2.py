@@ -1,21 +1,21 @@
 # This is CS205 Final Project
 import numpy as np
-import math
+from PIL import Image
 import scipy
 from scipy import ndimage
 import pyopencl as cl
 import os.path
 import pylab
+import time
 import sys
-from PIL import Image
 
 if __name__ == '__main__':
-    #read input arguments
+   #read input arguments
     inputfile = sys.argv[1]
     outputfile = sys.argv[2]
     syn_size = int(sys.argv[3])
 
-    print inputfile
+    # List our platforms
     platforms = cl.get_platforms()
     print 'The platforms detected are:'
     print '---------------------------'
@@ -48,12 +48,15 @@ if __name__ == '__main__':
     program = cl.Program(context, open('FillingPixels.cl').read()).build(options='')#(options=['-I', curdir])
 
 
-    host_texture = ndimage.imread(inputfile).astype(np.float32)
+    t0=time.time()
+
+    host_texture = ndimage.imread('../textures/text3.gif').astype(np.float32)
     host_texture = host_texture/255
 
 
+
     # template window size
-    w = 15
+    w = 19
     synthdim=[syn_size,syn_size]
     tex_width = np.int32(host_texture.shape[1])
     tex_height = np.int32(host_texture.shape[0])
@@ -66,12 +69,12 @@ if __name__ == '__main__':
     tofill=synthdim[0]*synthdim[1]-9 # the number of pixels to fill
 
     synthim=(np.ones((synthdim[0],synthdim[1]))*(-1)).astype(np.float32)
-    im_filled=np.zeros((synthdim[0],synthdim[1])).astype(np.float32) # image for testing the original image is filled or not
 
     # place the seed in the center and zero padding
-    synthim[(math.floor(synthdim[0]/2)-1):(math.floor(synthdim[0])/2+2), (math.floor(synthdim[1]/2)-1):(math.floor(synthdim[1]/2)+2)]=host_texture[5:8,4:7]
+    synthim[(np.floor(synthdim[0]/2)-1):(np.floor(synthdim[0])/2+2), (np.floor(synthdim[1]/2)-1):(np.floor(synthdim[1]/2)+2)]=host_texture[5:8,4:7]
  
     # GPU Global Buffers
+    #gpu_im_not_filled = cl.Buffer(context, cl.mem_flags.READ_WRITE, synthim.size*4)
     gpu_imfilled = cl.Buffer(context, cl.mem_flags.READ_WRITE, synthim.size*4)
     gpu_texture = cl.Buffer(context, cl.mem_flags.READ_WRITE, host_texture.size * 4)
     gpu_Gaussian = cl.Buffer(context, cl.mem_flags.READ_WRITE, w*w*4)
@@ -83,15 +86,25 @@ if __name__ == '__main__':
     cl.enqueue_copy(queue, gpu_Gaussian, G) #is_blocking=False)
     
     # find unfilled neighbors
-    se= ndimage.generate_binary_structure(2,2)  # use a 3 by 3 structuring element for dilation
+    #se= ndimage.generate_binary_structure(2,2)  # use a 3 by 3 structuring element for dilation
     im_filled=(synthim>=0).astype(np.float32)
-    im_dil=ndimage.binary_dilation(im_filled,structure=se)
-    [I,J]=np.nonzero(im_dil-im_filled)
+    im_not_filled=(synthim<0).astype(np.float32)
+    [I,J]=np.nonzero(im_not_filled)
+
+    # sort I and J by the distance to image center
+    ImCenX=np.floor(synthdim[0]/2)
+    ImCenY=np.floor(synthdim[1]/2)
+    vecImCenX=np.ones(len(I))*ImCenX
+    vecImCenY=np.ones(len(I))*ImCenY
+    vecDist=np.sqrt((I-vecImCenX)**2+(J-vecImCenY)**2)
+    DistTup=np.array(zip(I,J,vecDist),dtype=[('row',int),('col',int),('dist',float)])
+    sortedInd=np.argsort(DistTup,order='dist')
+    I=I[sortedInd]
+    J=J[sortedInd]
     I=np.int32(I)
     J=np.int32(J)
     gpu_I = cl.Buffer(context, cl.mem_flags.READ_WRITE, len(I)*4)
     gpu_J = cl.Buffer(context, cl.mem_flags.READ_ONLY, len(I)*4)
-
 
     cl.enqueue_copy(queue, gpu_imfilled, im_filled) #is_blocking=False)
     cl.enqueue_copy(queue, gpu_I, I) #is_blocking=False)
@@ -103,43 +116,31 @@ if __name__ == '__main__':
     sqDiff = cl.LocalMemory(4*w*w)
 
     # global size and local size
-    #global_size = (1,1,len(I))
     local_size = (w,w,1)
-    
 
-
-    while nfilled<tofill:
-        progress=0;
-        # Call Kernel
-        global_size = (w,w,len(I))
-        for i in range(len(I)):
-            program.FillingPixels_v3(queue, global_size, local_size,
+    # Call Kernel
+    n=1
+    flag=True
+    while flag:
+        if nfilled+8*n+8<=tofill:
+            global_size=(w,w,8*n+8)
+        else:
+            global_size=(w,w,tofill-nfilled)
+            flag=False
+        program.FillingPixels_v3(queue, global_size, local_size,
                                 gpu_Image, gpu_texture, gpu_imfilled, gpu_Gaussian,
                                 workgroup, mask, sqDiff, gpu_I, gpu_J, 
                                 np.int32(synthdim[0]),np.int32(synthdim[1]),np.int32(tex_width),np.int32(tex_height),
-                                np.int32(w),np.float32(MaxErrThreshold))
-
-        cl.enqueue_copy(queue, im_filled, gpu_imfilled, is_blocking=True)
-        nfilled_tmp = sum(sum(im_filled))
-        newly_filled = nfilled_tmp-nfilled
-        nfilled = nfilled_tmp
-        print nfilled, newly_filled
-        progress = newly_filled
-        if progress==0:
-                MaxErrThreshold=MaxErrThreshold*1.1
-        im_dil=ndimage.binary_dilation(im_filled,structure=se)
-        [I,J]=np.nonzero(im_dil-im_filled)
-        I=np.int32(I)
-        J=np.int32(J)
-        if len(I)>0:
-            gpu_I = cl.Buffer(context, cl.mem_flags.READ_ONLY, len(I)*4)
-            gpu_J = cl.Buffer(context, cl.mem_flags.READ_ONLY, len(I)*4)
-            cl.enqueue_copy(queue, gpu_I, I) #is_blocking=False)
-            cl.enqueue_copy(queue, gpu_J, J) #is_blocking=False)
-
+                                np.int32(w),np.float32(MaxErrThreshold),np.int32(n))
+        nfilled=nfilled+8*n+8
+        n=n+1
     cl.enqueue_copy(queue, synthim, gpu_Image)
 
+
+    print "Parallel Version costs ", time.time()-t0, " seconds"
+    
     out_im=Image.fromarray(synthim*255)
     out_im.convert('RGB').save(outputfile,"JPEG")   
+
 
 
